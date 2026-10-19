@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="theme-color" content="#090d12">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="码渡">
+  <title>码渡 QRDrop · 用二维码传文件</title>
+  <meta name="description" content="屏幕显示动态二维码，手机镜头接收。无需账号、无需上传，跨设备离线传输文件。">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./assets/icon-192.png">
+  <link rel="stylesheet" href="./src/styles.css">
+</head>
+<body>
+<div class="ambient" aria-hidden="true">
+  <span class="ambient-one"></span>
+  <span class="ambient-two"></span>
+  <span class="ambient-grid"></span>
+</div>
+
+<header class="site-head">
+  <a class="brand" href="#send" aria-label="码渡首页">
+    <img src="./assets/icon.svg" width="38" height="38" alt="">
+    <span>
+      <strong>码渡</strong>
+      <small>QRDROP</small>
+    </span>
+  </a>
+
+  <nav class="mode-tabs" role="tablist" aria-label="主要功能">
+    <button class="mode-tab is-active" type="button" role="tab" aria-selected="true"
+            aria-controls="view-send" data-view="send">发送</button>
+    <button class="mode-tab" type="button" role="tab" aria-selected="false"
+            aria-controls="view-receive" data-view="receive">接收</button>
+    <button class="mode-tab" type="button" role="tab" aria-selected="false"
+            aria-controls="view-help" data-view="help">说明</button>
+  </nav>
+
+  <div class="head-note">
+    <span class="privacy-dot" aria-hidden="true"></span>
+    <span>不上传文件</span>
+  </div>
+</header>
+
+<main class="page-shell">
+  <section class="view is-active" id="view-send" role="tabpanel" data-view-panel="send">
+    <div class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">SCREEN → CAMERA</p>
+        <h1>把文件，<em>交给光。</em></h1>
+        <p class="hero-lead">一台设备循环播放动态二维码，另一台用镜头扫回来。文件只在本地流动，不经过服务器。</p>
+        <div class="hero-tags">
+          <span>无需登录</span>
+          <span>自动补帧</span>
+          <span>可加密码</span>
+        </div>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="mini-screen">
+          <span class="mini-corner a"></span>
+          <span class="mini-corner b"></span>
+          <span class="mini-corner c"></span>
+          <i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="hero-beam"><span></span><span></span><span></span></div>
+        <div class="mini-lens"><span></span></div>
+      </div>
+    </div>
+
+    <div class="send-layout">
+      <section class="card send-setup" id="sendSetup">
+        <div class="card-head">
+          <div>
+            <p class="kicker">SEND</p>
+            <h2>选择要发送的文件</h2>
+          </div>
+          <span class="badge">发送端</span>
+        </div>
+
+        <label class="drop-zone" id="dropZone" for="fileInput">
+          <input id="fileInput" type="file" hidden>
+          <span class="drop-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M5 14v4.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <span class="drop-copy">
+            <strong id="fileName">拖入文件，或点击选择</strong>
+            <small id="fileMeta">支持任意文件 · 单文件不超过 32 MB</small>
+          </span>
+          <span class="drop-button" id="dropButton">浏览文件</span>
+        </label>
+
+        <fieldset class="field-block">
+          <legend>二维码密度</legend>
+          <div class="profile-grid" id="profileGrid">
+            <button class="profile-choice is-active" type="button" data-profile="stable" aria-pressed="true">
+              <span class="choice-mark">A</span>
+              <strong>稳定</strong>
+              <small>大模块 · 手机优先</small>
+            </button>
+            <button class="profile-choice" type="button" data-profile="balanced" aria-pressed="false">
+              <span class="choice-mark">B</span>
+              <strong>均衡</strong>
+              <small>速度与识别折中</small>
+            </button>
+            <button class="profile-choice" type="button" data-profile="fast" aria-pressed="false">
+              <span class="choice-mark">C</span>
+              <strong>高速</strong>
+              <small>密集 · 适合大屏</small>
+            </button>
+          </div>
+          <p class="field-note" id="profileNote">模块更大，适合手机屏幕和较远距离。</p>
+        </fieldset>
+
+        <div class="inline-setting">
+          <div>
+            <strong>智能压缩</strong>
+            <small>文本、配置和日志通常会变小；图片和压缩包基本不变。</small>
+          </div>
+          <label class="switch">
+            <input id="compressToggle" type="checkbox" checked>
+            <span aria-hidden="true"></span>
+            <span class="sr-only">启用智能压缩</span>
+          </label>
+        </div>
+
+        <div class="inline-setting password-setting">
+          <div>
+            <strong>密码保护</strong>
+            <small>文件先在浏览器中用 AES-256-GCM 加密，再编码为二维码。</small>
+          </div>
+          <label class="switch">
+            <input id="passwordToggle" type="checkbox">
+            <span aria-hidden="true"></span>
+            <span class="sr-only">启用密码保护</span>
+          </label>
+        </div>
+        <label class="password-field" id="sendPasswordWrap" hidden>
+          <span>设置密码</span>
+          <input id="sendPassword" type="password" minlength="4" autocomplete="new-password"
+                 placeholder="接收方需要输入同一密码">
+        </label>
+
+        <p class="form-error" id="sendError" role="alert" hidden></p>
+
+        <button class="primary-action" id="startSendBtn" type="button" disabled>
+          <span>生成二维码</span>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 12h14m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <p class="action-hint">文件只在这台设备的浏览器内处理。二维码会被附近能看见屏幕的人拍到，敏感内容请启用密码。</p>
+      </section>
+
+      <section class="card qr-card" id="sendStage" aria-live="polite">
+        <div class="qr-idle" id="qrIdle">
+          <div class="idle-art" aria-hidden="true">
+            <div class="idle-code">
+              <span class="q-corner tl"></span>
+              <span class="q-corner tr"></span>
+              <span class="q-corner bl"></span>
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              <span class="idle-scan"></span>
+            </div>
+            <div class="idle-phone">
+              <span></span>
+            </div>
+          </div>
+          <p class="kicker">LIVE QR STREAM</p>
+          <h2>二维码将在这里出现</h2>
+          <p>选择文件后开始发送，画面会持续变化。接收端不要求从第一帧开始，漏扫几帧也会自动补齐。</p>
+          <div class="idle-facts">
+            <span><b>01</b> 电脑或手机负责显示</span>
+            <span><b>02</b> 另一台设备打开“接收”</span>
+            <span><b>03</b> 保持二维码完整入镜</span>
+          </div>
+        </div>
+
+        <div class="qr-live" id="qrLive" hidden>
+          <div class="live-head">
+            <div>
+              <p class="kicker">NOW SENDING</p>
+              <h2 id="liveFileName">正在准备二维码</h2>
+            </div>
+            <span class="live-pill"><i></i> 循环播放</span>
+          </div>
+          <div class="qr-layout">
+            <div class="qr-paper">
+              <canvas id="qrCanvas" width="1024" height="1024" aria-label="正在显示的文件二维码"></canvas>
+              <div class="qr-pause" id="qrPaused" hidden>
+                <strong>已暂停</strong>
+                <span>点击“继续”恢复循环</span>
+              </div>
+            </div>
+            <aside class="qr-inspector">
+              <div class="inspector-item">
+                <span>模式</span>
+                <strong id="liveProfile">稳定</strong>
+              </div>
+              <div class="inspector-item">
+                <span>理论载荷</span>
+                <strong id="liveRate">4.5 KB/s</strong>
+              </div>
+              <div class="inspector-item">
+                <span>已显示帧</span>
+                <strong id="liveFrames">0</strong>
+              </div>
+              <div class="inspector-item">
+                <span>实际帧率</span>
+                <strong id="liveFps">—</strong>
+              </div>
+              <div class="inspector-item wide">
+                <span>会话</span>
+                <strong id="liveSession">—</strong>
+              </div>
+              <div class="live-note">
+                <span class="live-note-icon">↗</span>
+                <p>把屏幕亮度调高，手机与屏幕保持 15–40 厘米。需要更大的扫码区域时，点击“放大二维码”。</p>
+              </div>
+            </aside>
+          </div>
+          <div class="live-actions">
+            <button class="secondary-action" id="pauseSendBtn" type="button">暂停</button>
+            <button class="secondary-action" id="cinemaBtn" type="button">放大二维码</button>
+            <button class="danger-action" id="stopSendBtn" type="button">结束发送</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <section class="view" id="view-receive" role="tabpanel" data-view-panel="receive" hidden>
+    <div class="hero hero-compact">
+      <div class="hero-copy">
+        <p class="eyebrow">CAMERA ← SCREEN</p>
+        <h1>对准二维码，<br><em>把文件接住。</em></h1>
+        <p class="hero-lead">选择后置摄像头，必要时调焦或放大。接收端会记录不同帧，收齐后自动完成 SHA-256 校验。</p>
+      </div>
+      <div class="receive-privacy">
+        <span>本地解码</span>
+        <strong>摄像头画面<br>不会上传</strong>
+      </div>
+    </div>
+
+    <div class="receive-layout">
+      <section class="card camera-card">
+        <div class="card-head camera-head">
+          <div>
+            <p class="kicker">RECEIVE</p>
+            <h2>镜头扫描</h2>
+          </div>
+          <span class="camera-status" id="cameraStatus"><i></i> 摄像头未开启</span>
+        </div>
+
+        <div class="camera-shell" id="cameraShell">
+          <video id="receiveVideo" playsinline muted autoplay></video>
+          <div class="camera-placeholder" id="cameraPlaceholder">
+            <span class="camera-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.2l1-1.7A1.6 1.6 0 0 1 10.1 3h3.8a1.6 1.6 0 0 1 1.4.8l1 1.7h1.2A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-8Z" stroke="currentColor" stroke-width="1.7"/>
+                <circle cx="12" cy="12.5" r="3.5" stroke="currentColor" stroke-width="1.7"/>
+              </svg>
+            </span>
+            <strong id="cameraPlaceholderTitle">打开摄像头开始接收</strong>
+            <span id="cameraPlaceholderHint">浏览器会请求一次摄像头权限</span>
+            <button class="primary-action compact-action" id="startReceiveBtn" type="button">开启摄像头</button>
+          </div>
+          <div class="scan-overlay" id="scanOverlay" hidden aria-hidden="true">
+            <span class="scan-corner tl"></span>
+            <span class="scan-corner tr"></span>
+            <span class="scan-corner bl"></span>
+            <span class="scan-corner br"></span>
+            <span class="scan-line"></span>
+          </div>
+          <div class="camera-overlay-top">
+            <span class="camera-chip" id="cameraResolution">等待摄像头</span>
+            <span class="camera-chip success" id="lastFrameBadge" hidden>已识别</span>
+          </div>
+          <div class="camera-hint" id="cameraHint">将动态二维码完整放入取景框</div>
+        </div>
+
+        <div class="camera-tools">
+          <label class="select-field">
+            <span>摄像头</span>
+            <select id="cameraSelect" disabled>
+              <option value="">开启权限后加载</option>
+            </select>
+          </label>
+          <button class="icon-action" id="swapCameraBtn" type="button" title="切换摄像头" aria-label="切换摄像头" disabled>
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M7 7h11l-3-3m3 3-3 3M17 17H6l3 3m-3-3 3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button class="icon-action" id="torchBtn" type="button" title="打开补光灯" aria-label="打开补光灯" hidden>
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="m13 2-7 12h5l-1 8 8-13h-5V2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="zoom-tools">
+          <div class="zoom-label">
+            <span>变焦</span>
+            <strong id="zoomValue">1.0×</strong>
+            <small id="zoomModeLabel">等待摄像头能力检测</small>
+          </div>
+          <input id="zoomRange" type="range" min="1" max="3" step="0.05" value="1"
+                 aria-label="摄像头变焦" disabled>
+          <button class="text-action" id="resetZoomBtn" type="button" disabled>重置</button>
+        </div>
+
+        <div class="receive-actions">
+          <button class="secondary-action" id="receiveToggleBtn" type="button" hidden>停止摄像头</button>
+          <button class="secondary-action" id="resetReceiverBtn" type="button">重置接收</button>
+        </div>
+        <p class="form-error" id="receiveError" role="alert" hidden></p>
+      </section>
+
+      <section class="card receive-status">
+        <div class="status-top">
+          <div>
+            <p class="kicker">TRANSFER</p>
+            <h2 id="receiveHeadline">等待二维码</h2>
+          </div>
+          <span class="badge" id="receiveBadge">扫描中</span>
+        </div>
+
+        <div class="file-summary" id="receiveFileSummary">
+          <span class="file-type" id="receiveFileType">FILE</span>
+          <span class="file-copy">
+            <strong id="receiveFileName">还没有识别到文件</strong>
+            <small id="receiveFileMeta">把二维码放进取景框，第一帧识别后这里会显示文件信息。</small>
+          </span>
+        </div>
+
+        <div class="progress-wrap">
+          <div class="progress-labels">
+            <span id="receivePhase">正在寻找二维码</span>
+            <strong id="receivePercent">0%</strong>
+          </div>
+          <div class="progress-track"><span id="receiveProgressBar"></span></div>
+        </div>
+
+        <dl class="receive-stats">
+          <div><dt>已恢复数据块</dt><dd id="recoveredBlocks">0 / 0</dd></div>
+          <div><dt>有效帧</dt><dd id="receivedFrames">0</dd></div>
+          <div><dt>扫描速度</dt><dd id="scanRate">—</dd></div>
+          <div><dt>已用时间</dt><dd id="receiveElapsed">0 秒</dd></div>
+        </dl>
+
+        <div class="encryption-panel" id="receivePasswordPanel" hidden>
+          <div>
+            <strong>这个文件已加密</strong>
+            <small>输入发送方设置的密码。密码不会出现在二维码中。</small>
+          </div>
+          <form id="receivePasswordForm">
+            <label>
+              <span class="sr-only">接收密码</span>
+              <input id="receivePassword" type="password" autocomplete="current-password"
+                     placeholder="输入文件密码">
+            </label>
+            <button id="unlockBtn" type="submit">解密文件</button>
+          </form>
+        </div>
+
+        <div class="result-panel" id="receiveResult" hidden>
+          <div class="result-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="m5 12.5 4.2 4.2L19 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="result-copy">
+            <p class="kicker">VERIFIED</p>
+            <h3 id="resultFileName">文件已接收</h3>
+            <p id="resultMeta">SHA-256 校验通过</p>
+          </div>
+          <div class="result-actions">
+            <a class="primary-action save-link" id="saveFileLink" download>保存文件</a>
+            <button class="secondary-action" id="shareFileBtn" type="button" hidden>分享</button>
+            <button class="secondary-action" id="receiveAgainBtn" type="button">再收一个</button>
+          </div>
+          <code class="hash-line" id="resultHash">—</code>
+        </div>
+
+        <div class="receive-tip" id="receiveTip">
+          <span>对焦提示</span>
+          <p>如果一直识别不到，先把二维码缩到屏幕的 60%–80%，确认四个定位角都清楚，再用变焦放大。</p>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <section class="view" id="view-help" role="tabpanel" data-view-panel="help" hidden>
+    <div class="hero hero-compact">
+      <div class="hero-copy">
+        <p class="eyebrow">HOW IT WORKS</p>
+        <h1>一张屏，一枚镜头，<br><em>就够了。</em></h1>
+        <p class="hero-lead">不是把文件塞进一张静态二维码，而是把文件切成许多块，连续播放。镜头像拍下一条数据流，再在本地重新拼好。</p>
+      </div>
+      <div class="help-fact">
+        <strong>0</strong>
+        <span>服务器中转</span>
+        <strong>SHA-256</strong>
+        <span>完成后校验</span>
+      </div>
+    </div>
+
+    <div class="help-grid">
+      <article class="card help-card">
+        <p class="kicker">PROTOCOL</p>
+        <h2>为什么漏掉几帧也没关系？</h2>
+        <p>发送端使用喷泉码把文件块组合成持续变化的二维码。接收端收集到足够多的不同组合就能还原原始文件，不要求按顺序，也不要求从第一帧开始。</p>
+        <div class="flow-diagram" aria-label="传输流程">
+          <span>文件</span><i>→</i><span>压缩 / 加密</span><i>→</i><span>喷泉编码</span><i>→</i><span>动态 QR</span>
+          <b>屏幕 → 镜头</b>
+          <span>QR 帧</span><i>→</i><span>纠错解码</span><i>→</i><span>SHA-256</span><i>→</i><span>文件</span>
+        </div>
+      </article>
+
+      <article class="card help-card">
+        <p class="kicker">CAMERA</p>
+        <h2>摄像头与变焦</h2>
+        <p>接收端会先请求后置摄像头，并自动尝试连续对焦。权限授予后可以列出所有摄像头，自由切换。</p>
+        <ul class="help-list">
+          <li><strong>原生变焦</strong><span>浏览器和镜头公开 zoom 能力时，滑杆直接控制硬件变焦。</span></li>
+          <li><strong>数字变焦</strong><span>镜头没有公开变焦能力时，自动改为中心裁切放大，仍然可以辅助识别。</span></li>
+          <li><strong>补光灯</strong><span>镜头支持 torch 时会出现闪电按钮，屏幕反光或光线不足可以打开。</span></li>
+        </ul>
+      </article>
+
+      <article class="card help-card">
+        <p class="kicker">PRIVACY</p>
+        <h2>文件去了哪里？</h2>
+        <p>文件没有被上传。发送端在浏览器里读取、压缩、加密和编码；接收端在浏览器里解码、解密、校验和保存。页面首次加载后还可以离线使用。</p>
+        <div class="notice">
+          <strong>二维码是可见信道</strong>
+          <span>任何看到完整二维码流的人原则上都能录制并重建文件。传输护照、私钥等敏感内容时，请打开密码保护，并在私密空间完成传输。</span>
+        </div>
+      </article>
+
+      <article class="card help-card">
+        <p class="kicker">TIPS</p>
+        <h2>提高成功率</h2>
+        <ol class="tip-list">
+          <li><span>01</span><p>先用“稳定”模式。识别稳定后再换更高密度。</p></li>
+          <li><span>02</span><p>把发送屏幕亮度调高，关闭夜间模式或自动亮度。</p></li>
+          <li><span>03</span><p>避免屏幕反光和镜头阴影，让二维码完整进入取景框。</p></li>
+          <li><span>04</span><p>电脑发送时把浏览器窗口最大化；手机接收时优先选择后置主摄。</p></li>
+        </ol>
+      </article>
+    </div>
+
+    <div class="about-strip">
+      <div>
+        <strong>码渡 QRDrop</strong>
+        <span>纯前端 · PWA · MIT</span>
+      </div>
+      <p>基于 Project Nayuki 的二维码生成实现和 jsQR 解码实现。传输协议、界面和移动端适配在本项目中完成。</p>
+      <a href="https://github.com/RenjunL-xdu/qrdrop" target="_blank" rel="noreferrer">GitHub 仓库 ↗</a>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <span>码渡 QRDrop · 屏幕与镜头之间的文件桥</span>
+  <span>不上传 · 不配对 · 可离线</span>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="./vendor/jsQR.js"></script>
+<script type="module" src="./src/app.js"></script>
+</body>
+</html>
